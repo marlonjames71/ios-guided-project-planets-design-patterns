@@ -15,16 +15,33 @@ class PlanetsCollectionViewController: UICollectionViewController {
     // MARK: - Properties
     
     let planetController = PlanetController()
-    
-    var planets: [Planet] {
-        let shouldShowPluto = UserDefaults.standard.bool(forKey: .shouldShowPlutoKey)
-        return shouldShowPluto ? planetController.planetsWithPluto : planetController.planetsWithoutPluto
-    }
-    
+
+	override func viewDidLoad() {
+		super.viewDidLoad()
+
+		//Add observer for PlutoChanged Notification
+		NotificationCenter.default.addObserver(self, selector: #selector(refreshViews(notification:)), name: .shouldShowPlutoChanged, object: nil)
+	}
+
+	@objc func refreshViews(notification: Notification) {
+		// update the display ...
+		self.collectionView.reloadData()
+		print("Updated Pluto setting: \(planetController.shouldShowPluto)")
+	}
+
+	deinit {
+		// Sometimes you need to unregister from a notification
+		// On iOS9+ upi don't need to do this with the addObserver(selector) Notification method
+		// But you need to do this with the block (closure method)
+//		NotificationCenter.default.removeObserver(self, name: .shouldShowPlutoChanged, object: nil)
+		print("SettingsViewController.deinit")
+	}
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         collectionView?.reloadData()
     }
+
     
     @IBAction func unwindToPlanetsCollectionViewController(_ sender: UIStoryboardSegue) {
     }
@@ -32,13 +49,13 @@ class PlanetsCollectionViewController: UICollectionViewController {
     // MARK: UICollectionViewDataSource
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return planets.count
+        return planetController.planets.count
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PlanetCell", for: indexPath) as! PlanetCollectionViewCell
         
-        let planet = planets[indexPath.item]
+        let planet = planetController.planets[indexPath.item]
         cell.imageView.image = planet.image
         cell.textLabel.text = planet.name
         
@@ -62,7 +79,7 @@ class PlanetsCollectionViewController: UICollectionViewController {
         if segue.identifier == "ShowPlanetDetail" {
             guard let indexPath = collectionView?.indexPathsForSelectedItems?.first else { return }
             let detailVC = segue.destination as! PlanetDetailViewController
-            detailVC.planet = planets[indexPath.row]
+            detailVC.planet = planetController.planets[indexPath.row]
         }
     }
 }

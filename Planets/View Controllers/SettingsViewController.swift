@@ -21,9 +21,15 @@ class SettingsViewController: UIViewController {
         let userDefaults = UserDefaults.standard
         shouldShowPlutoSwitch.isOn = userDefaults.bool(forKey: .shouldShowPlutoKey)
     }
+
+	private func sendPlutoHasChangedNotification() {
+		let notifcation = Notification.init(name: .shouldShowPlutoChanged)
+		NotificationCenter.default.post(notifcation)
+	}
     
     @IBAction func changeShouldShowPluto(_ sender: UISwitch) {
         let userDefaults = UserDefaults.standard
         userDefaults.set(sender.isOn, forKey: .shouldShowPlutoKey)
+		sendPlutoHasChangedNotification()
     }
 }
